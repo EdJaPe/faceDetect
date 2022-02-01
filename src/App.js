@@ -1,12 +1,16 @@
-import logo from './logo.svg';
+
 import './App.css';
+import Logo from './components/logo/Logo.js';
+import Navigation from './components/navigation/Navigation';
 
 function App() {
   return (
     <div className="App">
-      <header className="App-header">
-        
-      </header>
+      <Navigation/>
+       <Logo/>
+       {/*}
+      <ImageLinkForm/>
+      <FaceRecognition/> */}
     </div>
   );
 }
