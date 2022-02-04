@@ -1,5 +1,6 @@
 
 import Particles from 'react-tsparticles';
+import { Component } from 'react';
 import './App.css';
 import ImageLinkForm from './components/imageLinkForm/ImageLinkForm';
 import Logo from './components/logo/Logo.js';
@@ -9,14 +10,14 @@ import Rank from './components/Rank/Rank';
 const particleOptions = {
   background: {
     color: {
-      value: "#0d47a1",
+      value: "linear-gradient(89deg, #7f31d8 0%, #1badce 100%)",
     },
   },
   fpsLimit: 60,
   interactivity: {
     events: {
       onClick: {
-        enable: true,
+        enable: false,
         mode: "push",
       },
       onHover: {
@@ -30,7 +31,7 @@ const particleOptions = {
         distance: 400,
         duration: 2,
         opacity: 0.8,
-        size: 40,
+        size: 20,
       },
       push: {
         quantity: 4,
@@ -66,9 +67,9 @@ const particleOptions = {
     number: {
       density: {
         enable: true,
-        area: 800,
+        area: 700,
       },
-      value: 40,
+      value: 50,
     },
     opacity: {
       value: 0.5,
@@ -78,14 +79,27 @@ const particleOptions = {
     },
     size: {
       random: true,
-      value: 5,
+      value: 2,
     },
   },
   detectRetina: true,
 }
-function App() {
-  return (
-    <div className="App">
+class App extends Component {
+  constructor(){
+    super()
+    this.state = {
+      input:''
+    }
+  }
+  onInputChange = (event) =>{
+    console.log(event.target.value);
+  }
+  onButtonSubmit = () => {
+    console.log('click')
+  }
+  render(){
+    return (
+      <div className="App">
       <Particles className='particles'
       // id="tsparticles"
       // init={particlesInit}
@@ -95,11 +109,15 @@ function App() {
       <Navigation/>
        <Logo/>
        <Rank/>
-      <ImageLinkForm/>
+      <ImageLinkForm 
+      onInputChange={this.onInputChange} 
+      onButtonSubmit={this.onButtonSubmit}
+      />
        {/*}
       <FaceRecognition/> */}
     </div>
   );
+}
 }
 
 export default App;

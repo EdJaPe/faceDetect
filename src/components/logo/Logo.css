@@ -1,6 +1,7 @@
 .Tilty{
   display: block;
-  width: 20vw;
-  height: 30vh;
+  width: 190px;
+  height: 190px;
+  
   background: linear-gradient(89deg, #7f31d8 0%, #1badce 100%);
 }
