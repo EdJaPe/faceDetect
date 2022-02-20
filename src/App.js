@@ -6,98 +6,85 @@ import ImageLinkForm from './components/imageLinkForm/ImageLinkForm';
 import Logo from './components/logo/Logo.js';
 import Navigation from './components/navigation/Navigation';
 import Rank from './components/Rank/Rank';
+import particleOptions from './particleOptions';
+import FaceRecognition from './components/FaceRecognition/FaceRecognition';
+import Clarifai from 'clarifai';
+import SignIn from './components/SignIn/SignIn';
+import Register from './components/Register/Register';
+// const {ClarifaiStub, grpc} = require("clarifai-nodejs-grpc");
+const API_KEY = process.env.REACT_APP_API_KEY;
 
-const particleOptions = {
-  background: {
-    color: {
-      value: "linear-gradient(89deg, #7f31d8 0%, #1badce 100%)",
-    },
-  },
-  fpsLimit: 60,
-  interactivity: {
-    events: {
-      onClick: {
-        enable: false,
-        mode: "push",
-      },
-      onHover: {
-        enable: false,
-        mode: "repulse",
-      },
-      resize: true,
-    },
-    modes: {
-      bubble: {
-        distance: 400,
-        duration: 2,
-        opacity: 0.8,
-        size: 20,
-      },
-      push: {
-        quantity: 4,
-      },
-      repulse: {
-        distance: 200,
-        duration: 0.4,
-      },
-    },
-  },
-  particles: {
-    color: {
-      value: "#ffffff",
-    },
-    links: {
-      color: "#ffffff",
-      distance: 150,
-      enable: true,
-      opacity: 0.5,
-      width: 1,
-    },
-    collisions: {
-      enable: true,
-    },
-    move: {
-      direction: "none",
-      enable: true,
-      outMode: "bounce",
-      random: false,
-      speed: 2,
-      straight: false,
-    },
-    number: {
-      density: {
-        enable: true,
-        area: 700,
-      },
-      value: 50,
-    },
-    opacity: {
-      value: 0.5,
-    },
-    shape: {
-      type: "circle",
-    },
-    size: {
-      random: true,
-      value: 2,
-    },
-  },
-  detectRetina: true,
-}
+
+
+
+const app = new Clarifai.App({
+ apiKey: API_KEY,
+});
+
+/**********************CLARIFAI API NEEDED *******************************/
+
+// const stub = ClarifaiStub.grpc();
+
+// // This will be used by every Clarifai endpoint call.
+// const metadata = new grpc.Metadata();
+// metadata.set("authorization", {API_KEY});
+/**************************************************************************/
+
+
 class App extends Component {
   constructor(){
     super()
     this.state = {
-      input:''
+      input:'',
+      imageUrl:'',
+      box:'',
+      route:'signIn',
+      isSignedIn:false
     }
   }
+  calculateFacePosition = (data) => {
+    const clarifaiBox = data.outputs[0].data.regions[0].region_info.bounding_box;
+    const image = document.getElementById('inputImage');
+    const width =Number(image.width);
+    const height =Number(image.height);
+    return {
+      leftCol: clarifaiBox.left_col * width,
+      topRow: clarifaiBox.top_row * height,
+      rightCol: width - (clarifaiBox.right_col * width),
+      bottomRow: height - (clarifaiBox.bottom_row * height)
+    }
+  }
+  displayFaceBox = (box) => {
+    
+    this.setState({box: box})
+  }
   onInputChange = (event) =>{
-    console.log(event.target.value);
+    this.setState({input: event.target.value})
+
   }
   onButtonSubmit = () => {
-    console.log('click')
+    this.setState({imageUrl: this.state.input})
+    app.models
+      .predict(
+        Clarifai.FACE_DETECT_MODEL,
+        this.state.input)
+      .then(response => {
+        
+        this.displayFaceBox(this.calculateFacePosition(response))
+    })
+    .catch(err => console.log(err))
   }
+  onRouteChange = (route) => {
+    if(route === 'signOut'){
+      this.setState({isSignedIn: false})
+    } else if(route === 'home'){
+      this.setState({isSignedIn: true})
+    }
+    this.setState({route: route})
+  }
+
   render(){
+    const {isSignedIn, imageUrl, route, box} = this.state;
     return (
       <div className="App">
       <Particles className='particles'
@@ -106,15 +93,28 @@ class App extends Component {
       // loaded={particlesLoaded}
       options={particleOptions}
       />
-      <Navigation/>
-       <Logo/>
-       <Rank/>
-      <ImageLinkForm 
-      onInputChange={this.onInputChange} 
-      onButtonSubmit={this.onButtonSubmit}
-      />
-       {/*}
-      <FaceRecognition/> */}
+      <Navigation isSignedIn={isSignedIn} onRouteChange={this.onRouteChange}/>
+      { route ==='home' ?
+        <div>
+          <Logo/>
+          <Rank/>
+          <ImageLinkForm 
+          onInputChange={this.onInputChange} 
+          onButtonSubmit={this.onButtonSubmit}
+          />
+          
+          <FaceRecognition
+          box={box}
+          imageUrl={imageUrl}
+          /> 
+        </div>
+        :(
+          route === 'signIn'
+          ?
+          <SignIn onRouteChange={this.onRouteChange}/>
+          :<Register onRouteChange={this.onRouteChange}/>
+        )
+      }
     </div>
   );
 }
